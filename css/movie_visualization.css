@@ -1,0 +1,111 @@
+body {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: black;
+    background-color: white;
+}
+
+.container {
+    width: 85%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#slider-score {
+    height: 350px;
+}
+
+#chart-div {
+    width: 90%;
+}
+
+#wrapper {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#title-div h1 {
+    text-align: center;
+    font-size: 30px;
+}
+
+#filter-row > div {
+    display: inline-block;
+    margin-right: 2%;
+}
+
+#filter-row > select {
+    width: 300px;
+}
+
+#clearBtn {
+    background-color: #FF5722;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 7px 24px 6px 22px;
+    text-decoration: none;
+
+}
+
+#continent_color > span {
+    padding: 2px 12px 3px 12px;
+    opacity: 0.4;
+    margin-left: 1%;
+
+}
+
+#Africa_spn {
+    background-color: #F44336;
+    border: 1px solid red;
+}
+
+#Asia_spn {
+    background-color: #FFEB3B;
+    border: 1px solid #ffe80e;
+}
+
+#Oceania_spn {
+    background-color: #4CAF50;
+    border: 1px solid green;
+}
+
+#Europe_spn {
+    background-color: #2196F3;
+    border: 1px solid blue;
+}
+
+#North_America_spn {
+    background-color: #9C27B0;
+    border: 1px solid purple;
+}
+
+#South_America_spn {
+    background-color: #795548;
+    border: black;
+}
+
+#license {
+    text-align: center;
+}
+
+#slider-year, #license div, #continent_color {
+    margin-top: 4%;
+}
+
+#contain-switch {
+    margin-top: -2%;
+    margin-bottom: 1%;
+}
+
+#chart-tr {
+    height: 720px;
+}

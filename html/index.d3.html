@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<meta charset="U+1F5E0">
+<html>
+<head>
+    <title>
+        Movie Visualization
+    </title>
+    <style>
+
+    </style>
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css"/>
+    <link rel="stylesheet" href="../css/d3.slider.css"/>
+    <link rel="stylesheet" href="../css/switchBtn.css"/>
+    <link rel="stylesheet" href="../css/chart.css"/>
+    <link rel="stylesheet" href="../css/movie_visualization.css"/>
+    <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="../js/d3.slider.js"></script>
+
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+    <script type="text/javascript" src="../js/data.js"></script>
+</head>
+<body>
+<div class="container">
+    <table>
+        <tr>
+            <td colspan="2">
+                <div id="title-div"><h1> Visualization of BBC's 100 greatest films of the 21st Century </h1></div>
+                <div id="continent_color" align="center">
+                    <span id="Africa_spn"></span> Africa
+                    <span id="Asia_spn"></span> Asia
+                    <span id="Oceania_spn"></span> Oceania
+                    <span id="Europe_spn"></span> Europe
+                    <span id="North_America_spn"></span> North America
+                    <span id="South_America_spn"></span> South America
+                    <!--<h2>Values: <span id="slider3textmin"></span>, <span id="slider3textmax"></span></h2>-->
+                </div>
+                <div id="contain-switch">
+                    <div id="switch-div">
+                        <!-- Rounded switch -->
+                        <span>Top 100 movies</span>
+                        <label class="switch">
+                            <input id="data_checkbox" type="checkbox">
+
+                            <div class="slider"></div>
+                        </label>
+                        <span>All movies</span>
+                    </div>
+
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td id="filter-row" colspan="2">
+
+                <select id="countryList" multiple> </select>
+                <select id="directorList" multiple></select>
+                <select id="genreList" multiple></select>
+                <select id="titleList" multiple></select>
+                <span id="clearBtn">Clear</span>
+            </td>
+        </tr>
+        <tr id="chart-tr">
+            <td id="slider-score-row">
+                <div class="slideBar" id="slider-score"></div>
+            </td>
+            <td id="chart-row">
+                <div id="chart-div"></div>
+            </td>
+
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div id="wrapper">
+                    <div class="slideBar" id="slider-year"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" id="license">
+                <div>
+                    <text> Laleh Rostami Hosoori | Sreynoch Soung | Nhu Quynh Nguyen <br/><br/>
+                        Mosig Data Science <br/>
+                        2017
+                    </text>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+
+    //Filter task
+    window.onload = function () {
+        d3.select("#data_checkbox").data.checked = 0;
+        initSelectBox();
+
+    };
+
+    function initSliders() {
+        var slider_year = d3.slider()
+                .axis(true)
+                .value([2000, 2016])
+                .min(2000)
+                .max(2016)
+                .step(1)
+                .on("slide", function (evt, value) {
+                    var data = filterByYear(value[0], value[1], d3.select("#data_checkbox").property("checked"));
+                    removeChart();
+                    drawChart(data);
+                });
+
+        d3.select('#slider-year').call(slider_year);
+
+        var slider_score = d3.slider()
+                .axis(d3.svg.axis().orient("left"))
+                .value([0, 400])
+                .min(0)
+                .max(400)
+                .step(10)
+                .orientation("vertical")
+                .on("slide", function (evt, value) {
+                    var data = filterByScores(value[0], value[1], d3.select("#data_checkbox").property("checked"));
+                    removeChart();
+                    drawChart(data);
+                });
+        d3.select('#slider-score').call(slider_score);
+    }
+
+    //Initial empty select box
+    function initSelectBox() {
+        $("#directorList").select2({
+            placeholder: 'Director',
+            width: "300px",
+            data: [{}]
+        });
+        $("#titleList").select2({
+            placeholder: 'Title',
+            width: "300px",
+            data: [{}]
+        });
+        $("#countryList").select2({
+            placeholder: 'Country',
+            width: "300px",
+            data: [{}]
+        });
+        $("#genreList").select2({
+            placeholder: 'Genre',
+            width: "300px",
+            data: [{}]
+        });
+    }
+
+    // Init funciton
+    init(function () {
+        $("#directorList").select2({
+            placeholder: 'Director',
+            width: "300px",
+            data: loadDirector(0)
+        });
+        $("#titleList").select2({
+            placeholder: 'Title',
+            width: "300px",
+            data: loadTitle(0)
+        });
+
+        $("#countryList").select2({
+            placeholder: 'Country',
+            width: "300px",
+            data: loadCountries(0)
+
+        });
+        $("#genreList").select2({
+            placeholder: 'Genre',
+            width: "300px",
+            data: loadGenres(0)
+
+        });
+
+        initSliders();
+        //Chart task
+        drawChart(getInitData(0));
+
+        d3.select('#data_checkbox').on("change", function () {
+            var data = getInitData(d3.select("#data_checkbox").property("checked"));
+            updatePage(data);
+        });
+
+    });
+
+    //Country List Action
+    $('#countryList').on("select2:select", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            return selected.text;
+        }).join(";");
+        $("#titleList").val(null).trigger("change");
+        $("#directorList").val(null).trigger("change");
+        $("#genreList").val(null).trigger("change");
+        filterSelection(selectedText, 1, d3.select("#data_checkbox").property("checked"));
+
+    });
+    $('#countryList').on("select2:unselect", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            return selected.text;
+        }).join(";");
+        filterSelection(selectedText, 1, d3.select("#data_checkbox").property("checked"));
+    });
+
+    //Director List Action
+    $('#directorList').on("select2:select", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            return selected.text;
+        }).join(";");
+        $("#titleList").val(null).trigger("change");
+        $("#countryList").val(null).trigger("change");
+        $("#genreList").val(null).trigger("change");
+        filterSelection(selectedText, 2, d3.select("#data_checkbox").property("checked"));
+
+    });
+    $('#directorList').on("select2:unselect", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            return selected.text;
+        }).join(";");
+        filterSelection(selectedText, 2, d3.select("#data_checkbox").property("checked"));
+    });
+
+    //Title List Action
+    $('#titleList').on("select2:select", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            if (!(selected.text === "") && selected.selected) {
+                return selected.text;
+            }
+        }).join(";");
+        $("#countryList").val(null).trigger("change");
+        $("#directorList").val(null).trigger("change");
+        $("#genreList").val(null).trigger("change");
+        filterSelection(selectedText, 3, d3.select("#data_checkbox").property("checked"));
+
+    });
+    $('#titleList').on("select2:unselect", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            if (!(selected.text === "")) {
+                return selected.text;
+            }
+        }).join(";");
+        filterSelection(selectedText, 3, d3.select("#data_checkbox").property("checked"));
+    });
+
+    //Genre List Action
+    $('#genreList').on("select2:select", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            if (!(selected.text === "") && selected.selected) {
+                return selected.text;
+            }
+        }).join(";");
+        $("#countryList").val(null).trigger("change");
+        $("#directorList").val(null).trigger("change");
+        $("#titleList").val(null).trigger("change");
+        filterSelection(selectedText, 4, d3.select("#data_checkbox").property("checked"));
+
+    });
+    $('#genreList').on("select2:unselect", function (e) {
+        var data = $(this).select2('data');
+        var selectedText = $.map(data, function (selected, i) {
+            if (!(selected.text === "")) {
+                return selected.text;
+            }
+        }).join(";");
+        filterSelection(selectedText, 4, d3.select("#data_checkbox").property("checked"));
+    });
+
+    //Get initial Data to draw chart
+    function getInitData(allMovies_selected) {
+        var data = [];
+        if (allMovies_selected) {
+            var keys = Object.keys(all_movies).forEach(function (imdbID) {
+                if (!(typeof imdbID === "undefined" || typeof all_movies[imdbID] === "undefined")) {
+                    var movie = all_movies[imdbID];
+                    if (!(typeof movie.score === "undefined") && !(typeof movie.year === "undefined") && movie.score > 0 && !isNaN(movie.score)) {
+                        data.push(all_movies[imdbID]);
+                    }
+                }
+            });
+        }
+        else {
+            data = top100_movies;
+        }
+        return data;
+    }
+
+    //Remove SVG elment, Chart, slider bar
+    function removeChart() {
+        d3.selectAll("#chart-div>svg > *").remove();
+        d3.selectAll("#chart-div>svg").remove();
+    }
+
+    // Clear selection box
+    $('#clearBtn').click(clearSelectionBox);
+
+    //Update Page's contents
+    function updatePage(data) {
+        removeChart();
+        drawChart(data);
+        clearSelectionBox();
+    }
+
+    function clearSelectionBox() {
+        d3.selectAll("#titleList > *").remove();
+        d3.selectAll("#countryList > *").remove();
+        d3.selectAll("#directorList > *").remove();
+        d3.selectAll("#genreList > *").remove();
+        initSelectBox();
+        filterSelection("", 1, d3.select("#data_checkbox").property("checked"));
+        reloadSelectionbox(d3.select("#data_checkbox").property("checked"));
+    }
+
+    function resetSliders() {
+        d3.selectAll("#slider-year > *").remove();
+        d3.selectAll("#slider-score > *").remove();
+        initSliders();
+    }
+
+    //Filter chart by selection box
+    function filterSelection(getOpts, isOption, allMovies_selected) {
+        var arrayOpts = getOpts.split(';');
+        if (!getOpts.trim()) {
+            removeChart();
+            drawChart(getInitData(allMovies_selected));
+        } else {
+
+            if (isOption == 1) {
+                removeChart();
+                drawChart(filterByCountry(arrayOpts, allMovies_selected));
+            } else if (isOption == 2) {
+                removeChart();
+                drawChart(filterByDirector(arrayOpts, allMovies_selected));
+            } else if (isOption == 3) {
+                removeChart();
+                drawChart(filterByTitle(arrayOpts, allMovies_selected));
+            }
+            else if (isOption == 4) {
+                removeChart();
+                drawChart(filterByGenre(arrayOpts, allMovies_selected));
+            }
+        }
+
+    }
+
+    //Reload data to selection box
+    function reloadSelectionbox(allMovies_selected) {
+
+        $("#countryList").select2({
+            placeholder: 'Country',
+            width: "300px",
+            data: loadCountries(allMovies_selected)
+        });
+        $("#titleList").select2({
+            placeholder: 'Title',
+            width: "300px",
+            data: loadTitle(allMovies_selected)
+        });
+        $("#directorList").select2({
+            placeholder: 'Director',
+            width: "300px",
+            data: loadDirector(allMovies_selected)
+        });
+        $("#genreList").select2({
+            placeholder: 'Genre',
+            width: "300px",
+            data: loadGenres(allMovies_selected)
+        });
+    }
+
+    //Draw chart function
+    function drawChart(data) {
+
+        // Set the dimensions of the canvas / graph
+        var margin = {top: 25, right: 20, bottom: 20, left: 70},
+                width = 1200 - margin.left - margin.right,
+                height = 720 - margin.top - margin.bottom;
+
+        // Set the ranges
+        var x = d3.scale.linear().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        // Define the axes
+        var xAxis = d3.svg.axis().scale(x)
+                .orient("bottom").tickValues(function () {
+                    var years = [];
+                    for (var i = 0; i < 17; i++) {
+                        years.push(new Date(2000 + i, 1, 1));
+                    }
+                    return years;
+                }).tickFormat(function (d) {
+                    return d3.time.format('%Y')(new Date(d));
+                });
+//                ticks(20)
+
+        var yAxis = d3.svg.axis().scale(y)
+                .orient("left").ticks(10);
+
+        //Define the tooltip
+        var tip = d3.tip()
+                .attr('class', 'd3-tip')
+                .offset([-10, 0])
+                .html(function (d) {
+                    return "<img src =" + d.poster + " height = '150' />" + "<br/>" +
+                            "Title: " + d.title + "<br/>" +
+                            "Director: " + d.director + "</br>" +
+                            "Genre: " + d.genre + "<br/>" +
+                            "Country: " + d.countries + "<br/>" +
+                            "Released: " + formatDate(d.released) + "<br/>" +
+                            "Score: " + d.score + "<br/>" +
+                            "Critics: " + getCriticContinentPercentage(d);
+                });
+
+        // Adds the svg canvas
+        var svg = d3.select("#chart-div")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        //Add the tooltip
+        svg.call(tip);
+
+//        x.domain([new Date(2000, 1, 1), new Date(2016, 12, 31)]).nice();    // new Date(2016, 12, 31)
+//        y.domain([0, 400]).nice();
+
+        x.domain(d3.extent(data, function (d) {
+            return d.released;
+        })).nice();
+
+        y.domain([0, d3.max(data, function (d) {return d.score;})]).nice();
+
+        // Add the rectangle
+        var rectangles = svg.selectAll(".movie")
+                .data(data)
+                .enter().append("rect")
+                .attr('class', 'rect')
+                .attr("x", function (d) {
+                    return x(d.released);
+                })
+                .attr("y", function (d) {
+                    return y(d.score);
+                })
+                .attr("rx", .5)
+                .attr("ry", .5);
+
+        //Add the rectangle's attribute
+        var rectangles_attr = rectangles
+                .attr("width", function (d) {
+                    return d.score * .5;
+                })
+                .attr("height", function (d) {
+                    return d.score * .7;
+                })
+                .attr("fill", function (d) {
+                    return d.color;
+                })
+                .attr("fill-opacity", 0.4)
+                .attr("stroke", function (d) {
+                    return d.color;
+                })
+                .attr("stroke-width", 3)
+                .attr("stroke-opacity", 0.7)
+                .attr("stroke-opacity", 0.7)
+                .attr("stroke-radius", "8px")
+                .on('mouseover', tip.show)
+                .on('mouseout', tip.hide);
+
+        // Add the X Axis
+        svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "4em");
+//                .attr("dy", ".9em");
+
+        // Add the Y Axis
+        svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("Score");
+    }
+
+</script>
+
+</body>
+</html>

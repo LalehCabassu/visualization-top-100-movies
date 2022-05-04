@@ -1,0 +1,59 @@
+path {
+    stroke: steelblue;
+    stroke-width: 1;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 2;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    fill: black;
+}
+
+.rect:hover {
+    stroke: #FF5722;
+    stroke-width: 5;
+}
+
+.d3-tip {
+    position: absolute;
+    margin: auto;
+    text-align: center;
+    padding: 10px;
+    font: 12px Comic Sans MS;
+    line-height: 1.5;
+    background: #1a1a1a;
+    background-opacity: 0.2;
+    filter: alpha(opacity=0.3);
+    color: #fff;
+    border-radius: 8px;
+    pointer-events: auto;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: #1a1a1a;
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
