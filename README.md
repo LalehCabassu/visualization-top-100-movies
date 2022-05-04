@@ -1,4 +1,8 @@
 # Visualization of Top 100 Movies
+This application is in JavaScript and uses [D3.js](https://d3js.org/) library.
+
+Here is a screenshot of the visualization :
+![](Screen Shot 2022-05-04 at 11.22.00.png)
 
 ## Objectives
 1. Easily recognize high ranked movies and their continent of origin
